@@ -1,30 +1,30 @@
 # Reddit Memes Parser - Yandex Cloud Function
 
-Функция для поиска мемов в Reddit по ключевым словам через OAuth API.
+Serverless function for searching memes in Reddit by keywords via OAuth API.
 
-## Структура проекта
+## Project Structure
 
-- `index.py` - основной код функции
-- `requirements.txt` - зависимости (пустой, используются стандартные библиотеки)
-- `deploy.sh` - скрипт для развертывания функции
-- `set_env.sh` - скрипт для установки переменных окружения
+- `index.py` - main function code
+- `requirements.txt` - dependencies (empty, uses standard libraries)
+- `deploy.sh` - deployment script
+- `set_env.sh` - environment variables setup script
 
-## Требования
+## Requirements
 
-1. Yandex Cloud CLI установлен и настроен
-2. Reddit приложение создано с полученными `client_id` и `client_secret`
-3. Доступ к каталогу `reddit-parser` (ID: `b1gduh7hn89hjb3h22sh`)
+1. Yandex Cloud CLI installed and configured
+2. Reddit application created with obtained `client_id` and `client_secret`
+3. Access to folder `reddit-parser` (ID: `b1gduh7hn89hjb3h22sh`)
 
-## Установка переменных окружения
+## Environment Variables Setup
 
-После получения ключей от Reddit, выполните:
+After obtaining keys from Reddit, run:
 
 ```bash
 chmod +x set_env.sh
 ./set_env.sh YOUR_CLIENT_ID YOUR_CLIENT_SECRET YOUR_REDDIT_USERNAME
 ```
 
-Или вручную:
+Or manually:
 
 ```bash
 yc serverless function set-environment-variables \
@@ -36,20 +36,20 @@ yc serverless function set-environment-variables \
   --environment REDDIT_SUBREDDIT=tarotmemes
 ```
 
-## Развертывание
+## Deployment
 
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-Или вручную:
+Or manually:
 
 ```bash
-# Создать ZIP архив
+# Create ZIP archive
 zip -r function.zip index.py requirements.txt
 
-# Развернуть функцию
+# Deploy function
 yc serverless function version create \
   --function-name reddit-parse \
   --folder-id b1gduh7hn89hjb3h22sh \
@@ -59,13 +59,13 @@ yc serverless function version create \
   --execution-timeout 10s \
   --source-path function.zip
 
-# Удалить временный файл
+# Remove temporary file
 rm function.zip
 ```
 
-## Использование
+## Usage
 
-Функция принимает JSON с параметрами:
+Function accepts JSON with parameters:
 
 ```json
 {
@@ -75,7 +75,7 @@ rm function.zip
 }
 ```
 
-Возвращает:
+Returns:
 
 ```json
 {
@@ -88,28 +88,27 @@ rm function.zip
       {
         "title": "Funny meme title",
         "url": "https://i.redd.it/...",
-        "permalink": "https://www.reddit.com/r/memes/...",
+        "permalink": "https://www.reddit.com/r/tarotmemes/...",
         "score": 1234,
         "subreddit": "tarotmemes",
         "author": "username",
         "created_utc": 1234567890,
-        "keyword": "funny"
+        "keyword": "tarot"
       }
     ]
   }
 }
 ```
 
-## Параметры
+## Parameters
 
-- `keywords` (обязательно) - ключевые слова через запятую
-- `subreddit` (опционально) - название subreddit, по умолчанию из переменной окружения `REDDIT_SUBREDDIT` (tarotmemes)
-- `limit` (опционально) - количество результатов, по умолчанию 10
+- `keywords` (required) - comma-separated keywords
+- `subreddit` (optional) - subreddit name, defaults to `REDDIT_SUBREDDIT` environment variable (tarotmemes)
+- `limit` (optional) - number of results, defaults to 10
 
-## Переменные окружения
+## Environment Variables
 
-- `REDDIT_CLIENT_ID` - Client ID от Reddit приложения (обязательно)
-- `REDDIT_CLIENT_SECRET` - Client Secret от Reddit приложения (обязательно)
-- `REDDIT_USER_AGENT` - User-Agent строка для Reddit API (обязательно)
-- `REDDIT_SUBREDDIT` - название subreddit по умолчанию (по умолчанию: tarotmemes)
-
+- `REDDIT_CLIENT_ID` - Client ID from Reddit application (required)
+- `REDDIT_CLIENT_SECRET` - Client Secret from Reddit application (required)
+- `REDDIT_USER_AGENT` - User-Agent string for Reddit API (required)
+- `REDDIT_SUBREDDIT` - default subreddit name (default: tarotmemes)

@@ -1,4 +1,3 @@
-# Для Yandex Cloud Functions стандартная библиотека Python достаточна
-# urllib, json, base64, os входят в стандартную библиотеку Python 3.12
-# Дополнительные зависимости не требуются
-
+# For Yandex Cloud Functions, Python standard library is sufficient
+# urllib, json, base64, os are part of Python 3.12 standard library
+# No additional dependencies required
