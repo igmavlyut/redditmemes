@@ -5,7 +5,7 @@ import base64
 import os
 from typing import List, Dict, Optional
 
-# Получаем credentials из переменных окружения
+# Get credentials from environment variables
 REDDIT_CLIENT_ID = os.environ.get('REDDIT_CLIENT_ID', '')
 REDDIT_CLIENT_SECRET = os.environ.get('REDDIT_CLIENT_SECRET', '')
 REDDIT_USER_AGENT = os.environ.get('REDDIT_USER_AGENT', 'MemeBot/1.0 by YourUsername')
@@ -14,16 +14,16 @@ REDDIT_SUBREDDIT = os.environ.get('REDDIT_SUBREDDIT', 'tarotmemes')
 
 def handler(event, context):
     """
-    Yandex Cloud Function handler для поиска мемов в Reddit через OAuth API
+    Yandex Cloud Function handler for searching memes in Reddit via OAuth API
     
-    Ожидает в event:
-    - keywords: строка с ключевыми словами через запятую (обязательно)
-    - subreddit: (опционально) название subreddit, по умолчанию из переменной окружения REDDIT_SUBREDDIT
-    - limit: (опционально) количество результатов, по умолчанию 10
+    Expected in event:
+    - keywords: comma-separated keywords string (required)
+    - subreddit: (optional) subreddit name, defaults to REDDIT_SUBREDDIT environment variable
+    - limit: (optional) number of results, defaults to 10
     """
     
     try:
-        # Проверяем наличие credentials
+        # Check for credentials
         if not REDDIT_CLIENT_ID or not REDDIT_CLIENT_SECRET:
             return {
                 'statusCode': 500,
@@ -33,13 +33,13 @@ def handler(event, context):
                 }, ensure_ascii=False)
             }
         
-        # Получаем параметры из запроса
+        # Get parameters from request
         if isinstance(event, dict):
             keywords = event.get('keywords', '')
             subreddit = event.get('subreddit', REDDIT_SUBREDDIT)
             limit = int(event.get('limit', 10))
         else:
-            # Если event - строка (например, из HTTP запроса)
+            # If event is a string (e.g., from HTTP request)
             try:
                 params = json.loads(event) if isinstance(event, str) else {}
             except json.JSONDecodeError:
@@ -57,7 +57,7 @@ def handler(event, context):
                 }, ensure_ascii=False)
             }
         
-        # Получаем access token
+        # Get access token
         access_token = get_reddit_access_token()
         if not access_token:
             return {
@@ -68,16 +68,16 @@ def handler(event, context):
                 }, ensure_ascii=False)
             }
         
-        # Разбиваем ключевые слова
+        # Split keywords
         keyword_list = [kw.strip() for kw in keywords.split(',') if kw.strip()]
         
-        # Ищем мемы по каждому ключевому слову
+        # Search memes for each keyword
         all_images = []
         for keyword in keyword_list:
             images = search_reddit_memes(keyword, subreddit, limit, access_token)
             all_images.extend(images)
         
-        # Убираем дубликаты по URL
+        # Remove duplicates by URL
         unique_images = []
         seen_urls = set()
         for img in all_images:
@@ -85,7 +85,7 @@ def handler(event, context):
                 seen_urls.add(img['url'])
                 unique_images.append(img)
         
-        # Сортируем по score (популярности)
+        # Sort by score (popularity)
         unique_images.sort(key=lambda x: x.get('score', 0), reverse=True)
         
         return {
@@ -110,14 +110,14 @@ def handler(event, context):
 
 def get_reddit_access_token() -> Optional[str]:
     """
-    Получает OAuth access token от Reddit используя client_credentials flow
+    Gets OAuth access token from Reddit using client_credentials flow
     
     Returns:
-        Access token строка или None в случае ошибки
+        Access token string or None in case of error
     """
     url = 'https://www.reddit.com/api/v1/access_token'
     
-    # Подготавливаем Basic Auth
+    # Prepare Basic Auth
     credentials = f"{REDDIT_CLIENT_ID}:{REDDIT_CLIENT_SECRET}"
     encoded_credentials = base64.b64encode(credentials.encode()).decode()
     
@@ -151,27 +151,27 @@ def get_reddit_access_token() -> Optional[str]:
 
 def search_reddit_memes(keyword: str, subreddit: str, limit: int, access_token: str) -> List[Dict]:
     """
-    Ищет мемы в Reddit по ключевому слову с OAuth авторизацией
+    Searches for memes in Reddit by keyword with OAuth authorization
     
     Args:
-        keyword: ключевое слово для поиска
-        subreddit: название subreddit
-        limit: максимальное количество результатов
+        keyword: keyword to search for
+        subreddit: subreddit name
+        limit: maximum number of results
         access_token: OAuth access token
     
     Returns:
-        Список словарей с информацией о мемах
+        List of dictionaries with meme information
     """
     
-    # Используем OAuth endpoint
+    # Use OAuth endpoint
     search_url = f"https://oauth.reddit.com/r/{subreddit}/search"
     params = {
         'q': keyword,
         'restrict_sr': 'true',
         'sort': 'top',
-        'limit': min(limit, 25),  # Reddit API ограничивает до 25 за запрос
+        'limit': min(limit, 25),  # Reddit API limits to 25 per request
         'type': 'link',
-        't': 'all'  # период: all, year, month, week, day
+        't': 'all'  # time period: all, year, month, week, day
     }
     
     url = f"{search_url}?{urllib.parse.urlencode(params)}"
@@ -190,7 +190,7 @@ def search_reddit_memes(keyword: str, subreddit: str, limit: int, access_token: 
                 for post in data['data']['children']:
                     post_data = post.get('data', {})
                     
-                    # Проверяем, что это изображение
+                    # Check if it's an image
                     url = post_data.get('url', '')
                     if is_image_url(url):
                         images.append({
@@ -217,13 +217,13 @@ def search_reddit_memes(keyword: str, subreddit: str, limit: int, access_token: 
 
 def is_image_url(url: str) -> bool:
     """
-    Проверяет, является ли URL ссылкой на изображение
+    Checks if URL points to an image
     
     Args:
-        url: URL для проверки
+        url: URL to check
     
     Returns:
-        True если URL указывает на изображение, False иначе
+        True if URL points to an image, False otherwise
     """
     if not url:
         return False
@@ -231,11 +231,11 @@ def is_image_url(url: str) -> bool:
     image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
     url_lower = url.lower()
     
-    # Проверяем расширения файлов
+    # Check file extensions
     if any(url_lower.endswith(ext) for ext in image_extensions):
         return True
     
-    # Проверяем популярные хостинги изображений
+    # Check popular image hosting services
     image_hosts = [
         'i.redd.it',
         'i.imgur.com',
@@ -244,12 +244,12 @@ def is_image_url(url: str) -> bool:
         'preview.redd.it'
     ]
     
-    # Проверяем, что это не страница imgur, а прямое изображение
+    # Check if it's not an imgur page but a direct image
     if 'imgur.com' in url_lower:
-        # Исключаем страницы галерей и альбомов
+        # Exclude gallery and album pages
         if '/a/' in url_lower or '/gallery/' in url_lower:
             return False
-        # Принимаем прямые ссылки на изображения
+        # Accept direct image links
         return True
     
     if any(host in url_lower for host in image_hosts):
